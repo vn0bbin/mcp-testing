@@ -1,4 +1,4 @@
-name: MCP Code Review Testing
+name: MCP Code Review Inline
 
 on:
   pull_request:
@@ -29,12 +29,16 @@ jobs:
                 -H "Content-Type: application/json" \
                 -d "{\"name\": \"review-pr\", \"arguments\": {\"code\": \"$CODE\"}}")
               echo "$RESPONSE" >> mcp_review.txt
+              export REVIEW_FILENAME=$file
             done
           fi
 
-      - name: Post review as PR comment
+      - name: Post inline review comments
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REVIEW_FILENAME: ${{ env.FILES }}
         run: |
-          COMMENT="MCP Code Review Results:\n$(cat mcp_review.txt)"
-          gh issue comment ${{ github.event.pull_request.number }} --body "$COMMENT"
+          pip3 install --break-system-packages requests
+          python3 inline_pr_comments.py mcp_review.txt
