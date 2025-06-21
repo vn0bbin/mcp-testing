@@ -1,4 +1,4 @@
-name: MCP Code Review
+name: MCP Code Review Test
 
 on:
   pull_request:
