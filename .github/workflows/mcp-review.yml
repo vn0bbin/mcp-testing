@@ -37,4 +37,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           COMMENT="MCP Code Review Results:\n$(cat mcp_review.txt)"
-          gh pr comment ${{ github.event.pull_request.number }} --body "$COMMENT"
+          gh issue comment ${{ github.event.pull_request.number }} --body "$COMMENT"
