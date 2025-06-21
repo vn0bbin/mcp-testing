@@ -40,5 +40,5 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REVIEW_FILENAME: ${{ env.FILES }}
         run: |
-          pip install requests
-          python inline_pr_comments.py mcp_review.txt
+          pip3 install requests
+          python3 inline_pr_comments.py mcp_review.txt
