@@ -20,13 +20,17 @@ jobs:
         env:
           FILES: ${{ env.FILES }}
         run: |
-          for file in $FILES; do
-            CODE=$(cat "$file")
-            RESPONSE=$(curl -s -X POST http://localhost:8000/call_tool \
-              -H "Content-Type: application/json" \
-              -d "{\"name\": \"review-pr\", \"arguments\": {\"code\": \"$CODE\"}}")
-            echo "$RESPONSE" >> mcp_review.txt
-          done
+          if [ -z "$FILES" ]; then
+            echo "No Python files to review." > mcp_review.txt
+          else
+            for file in $FILES; do
+              CODE=$(cat "$file")
+              RESPONSE=$(curl -s -X POST http://localhost:8000/call_tool \
+                -H "Content-Type: application/json" \
+                -d "{\"name\": \"review-pr\", \"arguments\": {\"code\": \"$CODE\"}}")
+              echo "$RESPONSE" >> mcp_review.txt
+            done
+          fi
 
       - name: Post review as PR comment
         env:
