@@ -1,0 +1,44 @@
+name: MCP Code Review Inline
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  review:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get changed Python files
+        id: files
+        run: |
+          echo "FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '.py$' | xargs)" >> $GITHUB_ENV
+
+      - name: Run MCP review
+        env:
+          FILES: ${{ env.FILES }}
+        run: |
+          if [ -z "$FILES" ]; then
+            echo "No Python files to review." > mcp_review.txt
+          else
+            for file in $FILES; do
+              CODE=$(cat "$file")
+              RESPONSE=$(curl -s -X POST http://localhost:8000/call_tool \
+                -H "Content-Type: application/json" \
+                -d "{\"name\": \"review-pr\", \"arguments\": {\"code\": \"$CODE\"}}")
+              echo "$RESPONSE" >> mcp_review.txt
+              export REVIEW_FILENAME=$file
+            done
+          fi
+
+      - name: Post inline review comments
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REVIEW_FILENAME: ${{ env.FILES }}
+        run: |
+          pip install requests
+          python inline_pr_comments.py mcp_review.txt
